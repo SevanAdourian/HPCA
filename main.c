@@ -1,37 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+float *allocate_mem(float*** arr, int n, int m) {
+  *arr = malloc(n * sizeof **arr);
+  float *arr_data = malloc(n * m * sizeof *arr_data);
+  for (size_t i = 0; i < n; ++i) {
+    (*arr)[i] = arr_data + i * m ;
+  }
+  return arr_data;
+}
+void deallocate_mem(float*** arr, float* arr_data) {
+  free(arr_data);
+  free(*arr);
+}
+
 struct edks_type {
-    char prefix[128];
-    char date[32];
-    char version[32];
-    char comment[128];
-    unsigned int nlayer;
-    int ndepth;
-    int ndista;
-    float *rho;
-    float *alpha;
-    float *beta;
-    float *thickness;
-    float depthmin;
-    float depthmax;
-    float distamin;
-    float distamax;
-    float *depths;
-    float *distas;
-    float ***zrtdsx;
+  char prefix[128], date[32], version[32], comment[128];
+  int nlayer, ndepth, ndista;
+  float depthmin, depthmax, distamin, distamax;
+  float *rho, *alpha, *beta, *thickness, *depths, *distas;
+  float ***zrtdsx;
 };
 
 extern void read_edks_(char *, struct edks_type *);
 extern void read_receivers_(char *, unsigned int *, float *, float *);
 extern void read_patch_(char *, unsigned int *, float *, float *, float *, float *, float *, float *, float *, float *, float *);
 extern void patch2pts_(float *, float *, float *, float *, float *, float *, float *, float *, float *, unsigned int *, unsigned int *, float *, float *, float *, float *);
-extern void mom2disp_(float [][], float [][], float [][], float *, float *, float *, float *, float *, struct edks_type *, float *);
-extern void write_disp_(char *, unsigned int *, unsigned int *, float [][], float [][], float [][]);
+extern void mom2disp_(float **, float **, float **, float *, float *, float *, float *, float *, struct edks_type *, float *);
+extern void write_disp_(char *, unsigned int *, unsigned int *, float **, float **, float **);
 
 int main(int argc, char const *argv[]) {
-  /*float *uxs, *uys, *uzs;
-  float *ux, *uy, *uz;*/
+  float **uxs, **uys, **uzs;
+  float **ux, **uy, **uz;
   float *xr, *yr;
   float *xsp, *ysp, *zsp;
   float *x, *y, *z;
@@ -57,58 +57,58 @@ int main(int argc, char const *argv[]) {
 
   nspp = npw * npy; // number of  sources per patch
 
-  float ux[nrec][np] ;
-  float uy[nrec][np] ;
-  float uz[nrec][np] ;
-  float uxs[nrec][nspp] ;
-  float uys[nrec][nspp] ;
-  float uzs[nrec][nspp] ;
-
-  strike = (float *) malloc(np * sizeof(float));
-  dip = (float *) malloc(np * sizeof(float));
-  strike_r = (float *) malloc(np * sizeof(float));
-  dip_r = (float *) malloc(np * sizeof(float));
-  rake = (float *) malloc(np * sizeof(float));
-  W = (float *) malloc(np * sizeof(float));
-  L = (float *) malloc(np * sizeof(float));
-  slip = (float *) malloc(np * sizeof(float));
-  x = (float *) malloc(np * sizeof(float));
-  y = (float *) malloc(np * sizeof(float));
-  z = (float *) malloc(np * sizeof(float));
-  xsp = (float *) malloc(nspp * sizeof(float));
-  ysp = (float *) malloc(nspp * sizeof(float));
-  zsp = (float *) malloc(nspp * sizeof(float));
-  /*ux = (float *) malloc(np * nrec * sizeof(float));
-  uy = (float *) malloc(np * nrec * sizeof(float));
-  uz = (float *) malloc(np * nrec * sizeof(float));
-  uxs = (float *) malloc(nspp * nrec * sizeof(float));
-  uys = (float *) malloc(nspp * nrec * sizeof(float));
-  uzs = (float *) malloc(nspp * nrec * sizeof(float));*/
-  xr = (float *) malloc(nrec * sizeof(float));
-  yr = (float *) malloc(nrec * sizeof(float));
+  strike = malloc(np * sizeof *strike);
+  dip = malloc(np * sizeof *dip);
+  strike_r = malloc(np * sizeof *strike_r);
+  dip_r = malloc(np * sizeof *dip_r);
+  rake = malloc(np * sizeof *rake);
+  W = malloc(np * sizeof *W);
+  L = malloc(np * sizeof *L);
+  slip = malloc(np * sizeof *slip);
+  x = malloc(np * sizeof *x);
+  y = malloc(np * sizeof *y);
+  z = malloc(np * sizeof *z);
+  xsp = malloc(nspp * sizeof *xsp);
+  ysp = malloc(nspp * sizeof *ysp);
+  zsp = malloc(nspp * sizeof *zsp);
+  float *ux_m = allocate_mem(&ux, nrec, np);
+  float *uy_m = allocate_mem(&uy, nrec, np);
+  float *uz_m = allocate_mem(&uz, nrec, np);
+  float *uxs_m = allocate_mem(&uxs, nrec, nspp);
+  float *uys_m = allocate_mem(&uys, nrec, nspp);
+  float *uzs_m = allocate_mem(&uzs, nrec, nspp);
+  xr = malloc(nrec * sizeof *xr);
+  yr = malloc(nrec * sizeof *yr);
 
   read_edks_(elem_filename, &edks);
 
-  read_receivers_(prefix, &nrec, xr, yr);
+  /*read_receivers_(prefix, &nrec, xr, yr);
 
   read_patch_(prefix, &np, x, y, z, strike, dip, rake, W, L, slip);
 
   for (size_t ip = 0; ip < np; ip++) {
-    patch2pts_(&strike[ip], &dip[ip], &rake[ip], &slip[ip], &W[ip], &L[ip], &x[ip], &y[ip], &z[ip], &npw, &npy, xsp, ysp, zsp, &M);
-    mom2disp_(uxs, uys, uzs, xr, yr, xsp, ysp, zsp, &edks, &M);
+  patch2pts_(strike + ip, dip + ip, rake + ip, slip + ip, W + ip, L + ip, x + ip, y + ip, z + ip, &npw, &npy, xsp, ysp, zsp, &M);
+  mom2disp_(uxs, uys, uzs, xr, yr, xsp, ysp, zsp, &edks, &M);
 
-    // need to sum pts back to patch contributions where arrays are
-    // indexed as ux(patch,receiver), uxs(pt_source,receiver)
-    for (size_t ii = 0; ii < nrec; ii++) {
-      for (size_t jj = 0; jj < nspp; jj++) {
-        ux[ii][ip] = ux[ii][ip] + uxs[ii][jj];
-        uy[ii][ip] = uy[ii][ip] + uys[ii][jj];
-        uz[ii][ip] = uz[ii][ip] + uys[ii][jj];
-      }
-    }
-  }
+  // need to sum pts back to patch contributions where arrays are
+  // indexed as ux(patch,receiver), uxs(pt_source,receiver)
+  for (size_t ii = 0; ii < nrec; ii++) {
+  for (size_t jj = 0; jj < nspp; jj++) {
+  ux[ii][ip] = ux[ii][ip] + uxs[ii][jj];
+  uy[ii][ip] = uy[ii][ip] + uys[ii][jj];
+  uz[ii][ip] = uz[ii][ip] + uys[ii][jj];
+}
+}
+}
 
-  write_disp_(prefix, &np, &nrec, ux, uy, uz);
+write_disp_(prefix, &np, &nrec, ux, uy, uz);*/
 
-  return 0;
+deallocate_mem(&ux, ux_m);
+deallocate_mem(&uy, uy_m);
+deallocate_mem(&uz, uz_m);
+deallocate_mem(&uxs, uxs_m);
+deallocate_mem(&uys, uys_m);
+deallocate_mem(&uzs, uzs_m);
+
+return 0;
 }
