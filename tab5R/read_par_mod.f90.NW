@@ -1,0 +1,91 @@
+subroutine read_parameters(parameters_filename)
+
+  use parameters
+  use wavenumber
+  use constants
+  implicit none
+
+  character (len = 256)	:: parameters_filename
+
+  ! local variables
+  integer, parameter	:: UNIT_PARAMETER = 8
+
+  open (status = "old", unit = UNIT_PARAMETER, file = parameters_filename)
+
+  ! Model
+  read(UNIT_PARAMETER, err = 20, end = 20, fmt = *) model_filename
+
+  ! Integration parameters
+  read(UNIT_PARAMETER, err = 20, end = 20, fmt = *) facmin
+  read(UNIT_PARAMETER, err = 20, end = 20, fmt = *) facmax
+  read(UNIT_PARAMETER, err = 20, end = 20, fmt = *) HH
+
+  close(UNIT_PARAMETER)
+  return
+
+20 print *, "Error: reading the parameters file"
+
+end subroutine read_parameters
+
+subroutine read_model(model_filename, struct_model)
+
+  use model
+  implicit none
+
+  character (len=256)	:: model_filename
+  type                  :: struct_1
+     real rh0
+     real vp0
+     real vs0
+     real th0
+  end type struct_1
+  
+  ! local variables
+
+  integer, parameter	:: UNIT_MODEL = 9
+  integer			:: j, jj
+  real			:: factor
+  type (struct_1), allocatable :: struct_model
+  print *, "coucou"
+  open (status = "old", unit = UNIT_MODEL, file = model_filename)
+  read (UNIT_MODEL, end = 10, FMT = *)  N, factor
+
+  !	if(N > MXMD) then
+  !		print *, "Error: The model in file: ", model_filename,        &
+  !                         "       does not fit into the allocated variables;", &
+  !                         "       you should change the dimensions \n"
+  !		stop 
+  !	endif 
+
+  !	Format of the model file changed July 1 - 2000
+  !	read (UNIT_MODEL, end = 10, fmt = *)  (vp0(j), j=1,N)
+  !	read (UNIT_MODEL, end = 10, fmt = *)  (vs0(j), j=1,N)
+  !	read (UNIT_MODEL, end = 10, fmt = *)  (rh0(j), j=1,N)
+  !	if(N > 1) then
+  !		read (UNIT_MODEL, end = 10, fmt = *)  (th0(j), j=1,N-1)
+  !		th0 = th0*factor
+  !	endif
+
+  allocate(struct_model % vp0(N), struct_model % vs0(N), struct_model % rh0(N),&
+       struct_model % th0(N))
+  do j=1,N
+     read (UNIT_MODEL, end = 10, fmt = *)  struct_model % rh0(j), &
+          struct_model % vp0(j), struct_model % vs0(j), struct_model % th0(j)
+  end do
+
+  close(UNIT_MODEL)
+
+  do jj = 1,N
+     struct_model % vp0(jj)= vp0(jj)*factor
+     struct_model % vs0(jj) = vs0(jj)*factor
+     struct_model % rh0(jj) = rh0(jj)*factor
+     struct_model % th0(jj) = th0(jj)*factor
+  end do
+  
+  ! print *, "coucou"
+  return
+
+10 print *, "Error reading the model file: ", model_filename
+  stop 
+
+end subroutine read_model
