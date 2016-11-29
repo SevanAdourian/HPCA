@@ -103,6 +103,16 @@ matmul21(matrix2by2 a, matrix2by1 b) {
   return ab;
 }
 
+matrix2by2
+id_mat2by2(matrix2by2 a) {
+	matrix2by2 b;
+	b.mat[0][0] = 1 - a.mat[0][0];
+	b.mat[0][1] = - a.mat[0][1];
+	b.mat[1][0] = - a.mat[1][0];
+	b.mat[1][1] = 1 - a.mat[1][1];
+	return b;
+}
+
 in_calcqwE
 acotab(float depth, float htol, struct model_struct struct_model) {
   //int N, Np, M;
@@ -325,8 +335,8 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
     TEMP1 = matmul22(RDRS, RTIL);
     TEMP2 = matmul22(RDSL, RUFS);
 
-    MOUT = matmul22(matmul22(matmul22(REV, inv22(Id2 - TEMP1)), TURS),
-		    inv22(Id2 - TEMP2)); /* definir Id2, Ze2 */
+    MOUT = matmul22(matmul22(matmul22(REV, inv22(id_mat2by2(TEMP1))), TURS),
+		    inv22(id_mat2by2(TEMP2))); /* definir Id2, Ze2 */
 
     /* et hop, deux de moins */
     /* free(TEMP1); */
