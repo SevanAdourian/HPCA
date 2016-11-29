@@ -21,33 +21,6 @@ int Ze2[2][2];
 /* Ze2[1][0] = 0; */
 /* Ze2[1][1] = 0; */
 
-typedef struct {
-  float mat[2][2];
-} matrix2by2;
-
-typedef struct {
-  float mat[2];
-} matrix2by1;
-
-typedef struct {
-  float *vp;
-  float *vs;
-  float *rh;
-  float *th;
-  float *lambda;
-  float *mu;
-  float *delta;
-  float *gamma;
-} in_calcqwE;
-
-typedef struct {
-  matrix2by2 q;
-  matrix2by2 w;
-  matrix2by2 v;
-  matrix2by1 qE;
-  matrix2by1 wE;
-} out_calcqwE;
-
 matrix2by2
 inv22(matrix2by2 a) {
 
@@ -376,7 +349,7 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
     /* free(vp); free(vs); free(rh); free(th); */
     /* free(lambda); free(mu); free(delta); free(gamma); */
     
+    return qwvE;
   }
-  return qwvE;
 }
 
