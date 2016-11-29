@@ -142,10 +142,10 @@ int main(int argc, char *argv[]) {
   qwvE.qE = malloc(nk * sizeof(float));
   qwvE.wE = malloc(nk * sizeof(float));
   
-  calcqwvE(Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em, q, w, v, qE, wE);
+  qwvE = calcqwvE(nk, &Pp, &Pm, &SVp, &SVm, &SHp, &SHm, Ep, Em);
 
   /* 	! calculation of the elementary displacements at the origin */
-  calc_BCD0E_(q, w, v, qE, wE, B, C, D, E, F);
+  calc_BCD0E_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, B, C, D, E, F);
     
   /* Bmat(:,jr) = B*dk; */
   /* Cmat(:,jr) = C*dk; */
