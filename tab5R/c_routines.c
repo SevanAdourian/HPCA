@@ -346,7 +346,7 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
 
     for (jm = 0; jm < 2; jm++) {
       matrix2by1 TEMP3;
-      TEMP3.mat[0] = Pp[jm] + Pm[jm]; TEMP1.mat[1] = SVp[jm] + SVm[jm];
+      TEMP3.mat[0] = Pp[jm] + Pm[jm]; TEMP3.mat[1] = SVp[jm] + SVm[jm];
      
       VD = matmul21(RDSL, TEMP3);
       VDsh = RDSLsh*SHp[jm] + SHm[jm];
@@ -376,7 +376,7 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
     /* free(vp); free(vs); free(rh); free(th); */
     /* free(lambda); free(mu); free(delta); free(gamma); */
     
-    return qwvE;
   }
+  return qwvE;
 }
 
