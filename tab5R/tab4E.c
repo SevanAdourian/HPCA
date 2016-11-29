@@ -20,6 +20,12 @@ extern void store_model_(float *vp, float *vs, float *rho, float *theta){
   struct_model.rh0[nline] = *rho;
   struct_model.th0[nline] = *theta;
   nline++;
+
+  free(vp0);
+  free(vs0);
+  free(rh0);
+  free(th0);
+
 }
 
 extern void read_model_(char *);
@@ -108,7 +114,7 @@ int main(int argc, char *argv[]) {
   /*     ! calculation for distance r=0 */
   jr = 0;
   hmin = th[0];
-  for(jh = 2, jh < Np, jh++){
+  for(jh = 2; jh < Np; jh++){
     hmin = min(hmin,th(jh)); /* Coucou le built-in fortran ! */
   }
 
@@ -139,11 +145,11 @@ int main(int argc, char *argv[]) {
   /* 	! calculation of the elementary displacements at the origin */
   calc_BCD0E_(q, w, v, qE, wE, B, C, D, E, F);
     
-  Bmat(:,jr) = B*dk;
-  Cmat(:,jr) = C*dk;
-  Dmat(:,jr) = D*dk;
-  Emat(  jr) = E*dk;
-  Fmat(  jr) = F*dk;
+  /* Bmat(:,jr) = B*dk; */
+  /* Cmat(:,jr) = C*dk; */
+  /* Dmat(:,jr) = D*dk; */
+  /* Emat(  jr) = E*dk; */
+  /* Fmat(  jr) = F*dk; */
   
   /* 	deallocate(q,w,v,qE,wE) */
   /* 	deallocate(kv) */
@@ -190,10 +196,12 @@ int main(int argc, char *argv[]) {
   /* 	enddo */
   /* 	close(10) */
 
-  free(vp, vs, rh, th);
-  free(lambda, mu, delta, gamma); 
-  free(rv, Bmat, Cmat, Dmat, Emat, Fmat);
-  free(vp0, vs0, rh0, th0);
+  free(rv);
+  free(Bmat);
+  free(Cmat);
+  free(Dmat);
+  free(Emat);
+  free(Fmat);
   
   /* stop */
   
