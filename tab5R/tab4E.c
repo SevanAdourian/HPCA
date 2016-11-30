@@ -38,15 +38,15 @@ int main(int argc, char *argv[]) {
   char *model_filename, *output_filename;
   int nkmin = 100;
   float Pp[3], Pm[3], SVp[3], SVm[3], SHp[3], SHm[3];
-  float Ep, Em;
+  float Ep = 0, Em = 0;
   //float *q, *w, *v, *qE, *wE;
   float B[3], C[3], D[2];
-  float E, F;	
+  float E = 0, F = 0;	
   /*real	:: D(3:4) */
   float facmin, facmax;
 
   float *rv, *kv;
-  int jh, jk, jr, nr;
+  int   nr;
   float r, rmin, rmax, dr;
   float *Bmat, *Cmat, *Dmat, *Emat, *Fmat;
   float hmin, hmax;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
   Emat = malloc(nr * sizeof(float));
   Fmat = malloc(nr * sizeof(float));
 
-  for (jr = 0; jr < nr-1; jr++) {
+  for (int jr = 0; jr < nr-1; jr++) {
     rv[jr] = rmin + jr*dr;
   }
     
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
   discotabE(M, Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em, physical_param.delta);
 
   /*     ! calculation for distance r=0 */
-  jr = 0;
+  int jr = 0;
   hmin = physical_param.th[0];
   /* for(jh = 2; jh < Np; jh++){ */
   /*   hmin = min(hmin,th(jh)); /\* Coucou le built-in fortran ! *\/ */
@@ -126,13 +126,15 @@ int main(int argc, char *argv[]) {
     hmax += physical_param.th[ii];
   }
   
-  float dk = 1 / facmin / hmax; /* Weird, right? */
+  float dk = 1. / facmin / hmax; /* Weird, right? */
   float nk = kmax / dk;
+
   if( nk < nkmin); nk = nkmin;
   kv = malloc(nk * sizeof(float));
+  
   float kmin = dk/100;
 
-  for(jk = 0; jk < nk -1; jk++){
+  for(int jk = 0; jk < nk -1; jk++){
     kv[jk] = kmin+jk*dk;
   }
 
@@ -147,47 +149,79 @@ int main(int argc, char *argv[]) {
   qwvE = calcqwvE(nk, Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em);
 
   /* 	! calculation of the elementary displacements at the origin */
-  calc_BCD0E_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, B, C, D, E, F);
+  calc_BCD0E_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, B, C, D, E, F, kv);
+
+  for (int ij =  0; ij < 2; ij++) {
+    Bmat[ij] = B[ij] * dk;
+    Cmat[ij] = C[ij] * dk;
+    Dmat[ij] = D[ij] * dk;
+  }
+  Emat[jr]     = E * dk;
+  Fmat[jr]     = F * dk;
+  
+  
+  free(qwvE.q);
+  free(qwvE.w);
+  free(qwvE.v);
+  free(qwvE.qE);
+  free(qwvE.wE);
+  free(kv);
+  
+  for (jr = 1; jr < nr; jr++) {
+    r = rv[jr];
+    if (r < hmin) kmax = facmax / r;
+    dk = 1./ facmin / hmax;
+    if(r > hmax) dk = 1. / facmin / r;
+    nk = kmax/dk;
+    if( nk < nkmin) nk = nkmin;
+
+    /* ! write(*,'(a, f9.2, a, e9.4, a, e9.4, a, i5)') ' r= ', r, ' dk= ', dk, ' kmax= ', kmax, ' nk= ', nk */
+
+    kv = malloc(nk * sizeof(float));
+    kmin = dk / 100.;
+    for(int jk = 0; jk < nk -1; jk++){
+      kv[jk] = kmin+jk*dk;
+    }
+
+    /*    ! calculation of the potentials at the surface */
+    out_calcqwE qwvE;
+    qwvE.q = malloc(3 * nk * sizeof(float));
+    qwvE.w = malloc(3 * nk * sizeof(float));
+    qwvE.v = malloc(3 * nk * sizeof(float));
+    qwvE.qE = malloc(nk * sizeof(float));
+    qwvE.wE = malloc(nk * sizeof(float));
     
-  Bmat(:,jr) = B*dk;
-  Cmat(:,jr) = C*dk;
-  Dmat(:,jr) = D*dk;
-  Emat(  jr) = E*dk;
-  Fmat(  jr) = F*dk;
-  
-  /* 	deallocate(q,w,v,qE,wE) */
-  /* 	deallocate(kv) */
-  
-  /* 	do jr=2,nr */
-  /* 		r = rv(jr) */
-  /* 		kmax	= facmax/hmin */
-  /* 		if(r < hmin) kmax = facmax/r */
-  /* 		dk	= 1./facmin/hmax */
-  /* 		if(r > hmax) dk = 1./facmin/r */
-  /* 		nk	= kmax/dk */
-  /* 		if( nk < nkmin) nk = nkmin */
-  /* !		write(*,'(a, f9.2, a, e9.4, a, e9.4, a, i5)') ' r= ', r, ' dk= ', dk, ' kmax= ', kmax, ' nk= ', nk */
-  /*         	allocate(kv(nk)) */
-  /* 		kmin = dk/100. */
-  /*         	kv    = (/ ( kmin+jk*dk, jk=0,(nk-1) ) /) */
+    /* 		call calcqwvE(Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em, q, w, v, qE, wE) */
+    qwvE = calcqwvE(nk, Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em);
 
-  /* 		! calculation of the potentials at the surface */
-  /* 		allocate(q(0:2,nk), w(0:2,nk), v(0:2,nk), qE(nk), wE(nk)) */
-  /* 		call calcqwvE(Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em, q, w, v, qE, wE) */
-
-  /* 		! calculation of the elementary displacements at the distance r */
-  /* 		call calc_coeffsE(q, w, v, qE, wE, r, B, C, D, E, F) */
-  /* 		Bmat(:,jr) = B*dk */
-  /* 		Cmat(:,jr) = C*dk */
-  /* 		Dmat(:,jr) = D*dk */
-  /* 		Emat(  jr) = E*dk */
-  /* 		Fmat(  jr) = F*dk */
-  /* 		deallocate(q,w,v,qE,wE) */
-  /* 		deallocate(kv) */
+    /* 		! calculation of the elementary displacements at the distance r */
+    calc_coeffsE_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, r, B, C, D, E, F, nk, kv);
+    for (int ij =  0; ij < 2; ij++) {
+      Bmat[ij * (jr+1)] = (B[ij] * dk) / c_4pi;
+      Cmat[ij * (jr+1)] = (C[ij] * dk) / c_4pi;
+      Dmat[ij * (jr+1)] = (D[ij] * dk) / c_4pi;
+    }
+    Emat[jr]     = (E * dk) / c_4pi;
+    Fmat[jr]     = (F * dk) / c_4pi;
+    
+    free(qwvE.q);
+    free(qwvE.w);
+    free(qwvE.v);
+    free(qwvE.qE);
+    free(qwvE.wE);
+    free(kv);
+    
+    /*   Bmat(:,jr) = B*dk */
+    /*   Cmat(:,jr) = C*dk */
+    /*   Dmat(:,jr) = D*dk */
+    /*   Emat(  jr) = E*dk */
+    /*   Fmat(  jr) = F*dk */
+    /*   deallocate(q,w,v,qE,wE) */
+    /*   deallocate(kv) */
 
   /* !		write(*,'(9e15.7)') rv(jr), Bm(:,jr), Cm(:,jr), Dm(:,jr) */
   /* 		write(*,'(t1,f4.1,"%")') 100.*float(jr-1)/float(nr) */
-  /* 	enddo */
+  }
 
   /* 	Bmat = Bmat/4./M_PI */
   /* 	Cmat = Cmat/4./M_PI */
@@ -200,7 +234,7 @@ int main(int argc, char *argv[]) {
   /* 	enddo */
   /* 	close(10) */
 
-  free(rv);
+  /* free(rv); */
   free(Bmat);
   free(Cmat);
   free(Dmat);
