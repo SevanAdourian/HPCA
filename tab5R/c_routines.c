@@ -5,21 +5,11 @@
 #include <errno.h>
 
 #include "model.h"
+#include "c_routines.h"
 
 #define DET_MIN 1e-9
 
 int N, Np, M; /* A mettre dans le main ? */
-int Id2[2][2];
-/* Id2[0][0] = 1; */
-/* Id2[0][1] = 1; */
-/* Id2[1][0] = 1; */
-/* Id2[1][1] = 1; */
-
-int Ze2[2][2];
-/* Ze2[0][0] = 0; */
-/* Ze2[0][1] = 0; */
-/* Ze2[1][0] = 0; */
-/* Ze2[1][1] = 0; */
 
 matrix2by2
 inv22(matrix2by2 a) {
@@ -291,17 +281,18 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
   
   for (jk = 0; jk < nk-1; jk++){
     //k = kv[jk];
-    
-    kenpsv_(0, &M1, &k, &RUFS, &TUFS, &RDFS, &TDFS);
-    kensh_(0, &M1, &k, &RUFSsh, &TUFSsh, &RDFSsh, &TDFSsh);
+    int un = 1;
+    int zero = 0;
+    kenpsv_(&zero, &M1, &k, RUFS.mat, TUFS.mat, RDFS.mat, TDFS.mat);
+    kensh_(&zero, &M1, &k, &RUFSsh, &TUFSsh, &RDFSsh, &TDFSsh);
 
-    kenpsv_(1, &M1, &k, &RURS, &TURS, &RDRS, &TDRS);
-    kensh_(1, &M1, &k, &RURSsh, &TURSsh, &RDRSsh, &TDRSsh);
+    kenpsv_(&un, &M1, &k, RURS.mat, TURS.mat, RDRS.mat, TDRS.mat);
+    kensh_(&un, &M1, &k, &RURSsh, &TURSsh, &RDRSsh, &TDRSsh);
 
-    kenpsv_(&M1, &Np1, &k, &RUSL, &TUSL, &RDSL, &TDSL);
+    kenpsv_(&M1, &Np1, &k, RUSL.mat, TUSL.mat, RDSL.mat, TDSL.mat);
     kensh_(&M1, &Np1, &k, &RUSLsh, &TUSLsh, &RDSLsh, &TDSLsh);
 
-    RERPSV_(1, &REV, &RTIL);
+    rerpsv_(&un, REV.mat, RTIL.mat);
     REVsh = 2;
     RTILsh = 1;
 
@@ -325,9 +316,9 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
       VDsh = RDSLsh*SHp[jm] + SHm[jm];
 
       qw = matmul21(MOUT, VD); /* VERIFIER DIMENSIONNNNNS */
-      qwvE.q.mat[jm][jk] = qw.mat[0];
-      qwvE.w.mat[jm][jk] = qw.mat[1];
-      qwvE.v.mat[jm][jk] = MOUTsh * VDsh;
+      qwvE.q[jm][jk] = qw.mat[0];
+      qwvE.w[jm][jk] = qw.mat[1];
+      qwvE.v[jm][jk] = MOUTsh * VDsh;
     }
 
     matrix2by1 Ep0;
@@ -337,8 +328,8 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
     
     VDE = matmul21(RDSL, Ep0);
     qwE = matmul21(MOUT, VDE);
-    qwvE.qE.mat[jk] = qwE.mat[0];
-    qwvE.wE.mat[jk] = qwE.mat[1]; /* A verifier */
+    qwvE.qE[jk] = qwE.mat[0];
+    qwvE.wE[jk] = qwE.mat[1]; /* A verifier */
 
     /* free(RUFS); free(TURS); free(RDRS); free(TDRS); */
     /* free(RUSL); free(TUSL); free(RDSL); free(TDSL); */
@@ -349,7 +340,9 @@ calcqwvE(int nk, float *Pp, float *Pm, float *SVp, float *SVm, float *SHp,
     /* free(vp); free(vs); free(rh); free(th); */
     /* free(lambda); free(mu); free(delta); free(gamma); */
     
-    return qwvE;
   }
+  
+  return qwvE;
+  
 }
 

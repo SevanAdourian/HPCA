@@ -14,9 +14,9 @@ END MODULE parameters
 
 MODULE  wavenumber
 	real			:: facmin, facmax, HH
-	real, 	allocatable	:: kv(:)
+!	real, 	allocatable	:: kv(:)
 	real			:: kmin, dk, kmax
-	integer			:: nk
+!	integer			:: nk
 END MODULE wavenumber
 
 MODULE constants

@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
   qwvE = calcqwvE(nk, Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em);
 
   /* 	! calculation of the elementary displacements at the origin */
-  calc_BCD0E_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, B, C, D, E, F, kv);
+  calc_bcd0e_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, B, C, D, E, F, kv);
 
   for (int ij =  0; ij < 2; ij++) {
     Bmat[ij] = B[ij] * dk;
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
     qwvE = calcqwvE(nk, Pp, Pm, SVp, SVm, SHp, SHm, Ep, Em);
 
     /* 		! calculation of the elementary displacements at the distance r */
-    calc_coeffsE_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, r, B, C, D, E, F, nk, kv);
+    calc_coeffse_(qwvE.q, qwvE.w, qwvE.v, qwvE.qE, qwvE.wE, r, B, C, D, E, F, nk, kv);
     for (int ij =  0; ij < 2; ij++) {
       Bmat[ij * (jr+1)] = (B[ij] * dk) / c_4pi;
       Cmat[ij * (jr+1)] = (C[ij] * dk) / c_4pi;
