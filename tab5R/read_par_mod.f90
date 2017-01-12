@@ -1,8 +1,8 @@
-! subroutine read_parameters(parameters_filename)
+subroutine read_parameters(parameters_filename)
 
-  use parameters
-  use wavenumber
-  use constants
+  !use parameters
+  !use wavenumber
+  !use constants
   implicit none
 
   character (len=256)	:: model_filename
