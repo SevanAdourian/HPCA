@@ -1,4 +1,4 @@
-include	"modules.inc"
+include	"modules.f90"
 include "nrtype.f90"
 
 recursive subroutine kenpsv(n,m, k, Ruac, Tuac, Rdac, Tdac)
@@ -393,7 +393,7 @@ CONTAINS
   END FUNCTION bessjle_v
 END FUNCTION bessj_v
 
-subroutine calc_BCD0E(q, w, v, qE, wE, B, C, D, E, F, nk, kv)
+subroutine calc_BCD0E(q, w, v, qE, wE, B, C, D, E, F, nk2, kv2)
 
   use nrtype
   use nr
@@ -402,27 +402,27 @@ subroutine calc_BCD0E(q, w, v, qE, wE, B, C, D, E, F, nk, kv)
   use constants
 
   implicit none
-  integer                :: nk
-  real, dimension(0:2,nk):: q, w, v
-  real, dimension(nk)    :: qE, wE
-  real			 :: B(0:2), C(0:2), D(3:4), E, F
-  real, allocatable      :: kv(:)
+  integer                 :: nk2
+  real, dimension(0:2,nk2):: q, w, v
+  real, dimension(nk2)    :: qE, wE
+  real			  :: B(0:2), C(0:2), D(3:4), E, F
+  real, allocatable       :: kv2(:)
 
-  B(0) = sum(w(0,:)*kv)
+  B(0) = sum(w(0,:)*kv2)
   B(1) = 0.
   B(2) = 0.
   C(0) = 0.
-  C(1) = sum((q(1,:)-v(1,:))*kv)/2.
+  C(1) = sum((q(1,:)-v(1,:))*kv2)/2.
   C(2) = 0.
   D(3) = C(1)
   D(4) = 0.
 
-  E    = sum(wE(:)*kv)
+  E    = sum(wE(:)*kv2)
   F    = 0.
 
 end subroutine calc_BCD0E
 !	include 'modules.inc'
-subroutine calc_coeffsE(q, w, v, qE, wE, r, B, C, D, E, F, nk, kv)
+subroutine calc_coeffsE(q, w, v, qE, wE, r, B, C, D, E, F, nk3, kv3)
 
   use nrtype
   use nr
@@ -431,40 +431,40 @@ subroutine calc_coeffsE(q, w, v, qE, wE, r, B, C, D, E, F, nk, kv)
   use constants
 
   implicit none 
-  integer                 :: nk
-  real, dimension(0:2,nk) :: q, w, v
-  real, dimension(nk)	  :: qE, wE
+  integer                 :: nk3
+  real, dimension(0:2,nk3) :: q, w, v
+  real, dimension(nk3)	  :: qE, wE
   real			  :: r
   real			  :: B(0:2), C(0:2), D(3:4), E, F
 
   ! local variables
   real			  :: tmp1, tmp2, tmp3
   real, allocatable	  :: j0(:), j1(:), j2(:)
-  real, allocatable       :: kv(:)
+  real, allocatable       :: kv3(:)
 
-  allocate(j0(nk), j1(nk), j2(nk))
-  j0 = bessj0( kv*r)
-  j1 = bessj1( kv*r)
-  j2 = bessj(2,kv*r)
-  B(0) =    sum(   w(0,:)        *j0*kv)
-  C(0) =   -sum(   q(0,:)        *j1*kv)
+  allocate(j0(nk3), j1(nk3), j2(nk3))
+  j0 = bessj0( kv3*r)
+  j1 = bessj1( kv3*r)
+  j2 = bessj(2,kv3*r)
+  B(0) =    sum(   w(0,:)        *j0*kv3)
+  C(0) =   -sum(   q(0,:)        *j1*kv3)
 
-  B(1) =    sum(   w(1,:)        *j1*kv)
+  B(1) =    sum(   w(1,:)        *j1*kv3)
   tmp1 =    sum((  q(1,:)+v(1,:))*j1)/r
-  tmp2 =    sum(kv*q(1,:)        *j0)
-  tmp3 =    sum(kv*       v(1,:) *j0)
+  tmp2 =    sum(kv3*q(1,:)        *j0)
+  tmp3 =    sum(kv3*       v(1,:) *j0)
   C(1) =   -tmp1 + tmp2
   D(3) =    tmp1 - tmp3
 
-  B(2) =    sum(   w(2,:)        *j2*kv)
+  B(2) =    sum(   w(2,:)        *j2*kv3)
   tmp1 =  2*sum((  q(2,:)+v(2,:))*j2)/r
-  tmp2 =    sum(kv*q(2,:)        *j1)
-  tmp3 =    sum(kv*       v(2,:) *j1)
+  tmp2 =    sum(kv3*q(2,:)        *j1)
+  tmp3 =    sum(kv3*       v(2,:) *j1)
   C(2) =   -tmp1 + tmp2
   D(4) =    tmp1 - tmp3
 
-  E    =    sum(  wE(:)        *j0*kv)
-  F    =   -sum(  qE(:)        *j1*kv)
+  E    =    sum(  wE(:)        *j0*kv3)
+  F    =   -sum(  qE(:)        *j1*kv3)
   deallocate(j0, j1, j2)
 
 end subroutine calc_coeffsE

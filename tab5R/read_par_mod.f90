@@ -51,7 +51,7 @@ subroutine read_model(model_filename)
   real,         allocatable     :: lambda(:), mu(:)
   real,         allocatable     :: delta(:), gamma(:)
   
-  external store_struct
+ ! external store_struct
   character (len=256)	:: model_filename
 
   ! local variables
@@ -66,7 +66,7 @@ subroutine read_model(model_filename)
   allocate(vp0(N), vs0(N), rh0(N), th0(N))
   do j=1,N
      read (UNIT_MODEL, end = 10, fmt = *)  rh0(j), vp0(j), vs0(j), th0(j)
-     call store_struct(vp0(j), vs0(j), rh0(j), th0(j))
+!     call store_struct(vp0(j), vs0(j), rh0(j), th0(j))
   end do
 
   close(UNIT_MODEL)
